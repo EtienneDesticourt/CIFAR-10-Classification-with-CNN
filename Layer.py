@@ -8,7 +8,6 @@ class Layer(object):
     def calcOutput(self, inputs):
         return self.params.dot(inputs)
     def calcDeltaAsLast(self, target, actual):
-        return (target - actual) * actual * (1 - actual)
+        return (-target + actual) * actual * (1 - actual)
     def calcDelta(self, output, previousDelta, previousParams):
-##        print(output.shape, previousDelta.shape, self.params.shape)
-        return (previousDelta * previousParams).sum() * output * (1 - output)
+        return previousDelta.dot(previousParams) * output * (1 - output)
