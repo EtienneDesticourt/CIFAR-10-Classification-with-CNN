@@ -17,7 +17,7 @@ def relu(array):
 def sigmoid(array):
     return 1.0 / (np.exp(-array) + 1)
 
-def run():
+def runTest1():
     #SIMPLE TEST
     
     #Gen training data
@@ -48,6 +48,7 @@ def run():
     N = Network(sigmoid, ALPHA)
     N.addLayer(2, biased=True)
     N.addLayer(7, biased=True)
+    #N.addLayer(7, biased=True)
     N.addLayer(1)
 
     #Train network    
@@ -65,5 +66,34 @@ def run():
     
     return N
 
-    
-N = run()    
+def run():
+    inputArray = np.array([[[[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
+                            [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]]])
+    labels = [1]
+    #print(inputArray.shape)
+
+    #Conv layer config
+    numKernels = 4
+    kernelSize = 3
+
+    #Create network
+    N = Network(sigmoid, ALPHA)
+    N.addLayer(inputArray[0].shape)
+    N.addConvLayer(inputArray[0].shape, numKernels, kernelSize, flatten=True) #We flatten it if it's gonna follow a FC layer
+    N.addLayer(10, biased=True)
+    N.addLayer(1)
+##    return inputArray
+##    return N
+    #Train network    
+    N.fit(inputArray, labels, NUM_EPOCH, verbose=True)
+
+    return N
+
+N = run()

@@ -1,4 +1,5 @@
 from Layer import Layer
+from CNN import ConvolutionalLayer
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,19 +10,25 @@ class Network(object):
         self.sigmoid = sigmoidFunc
         self.alpha = learningRate
         
-    def addLayer(self, numNeurons, biased=False):
+    def addLayer(self, numNeurons, biased=False):        
         if biased:
-            numNeurons += 1
+            numNeurons += 1 #will fail if attempting to bias a 2D+ layer
+
+        #Transform int to tuple for 1D layer for following shape calcs
+        #Maybe should only accept shapes ... dunno which is cleaner
+        if type(numNeurons) == int: numNeurons = (numNeurons,)
+        
         if not len(self.layers):
             NewLayer = Layer(numNeurons, 0, biased)     
         else:
-            paramsShape = (numNeurons,self.layers[-1].shape)
+            paramsShape = numNeurons + self.layers[-1].shape
             NewLayer = Layer(numNeurons, paramsShape, biased)
             
         self.layers.append(NewLayer)            
         
-    def addConvLayer(self):
-        pass
+    def addConvLayer(self, inputShape, numKernels, kernelSize, flatten=False):
+        NewLayer = ConvolutionalLayer(inputShape, numKernels, kernelSize, flatten)
+        self.layers.append(NewLayer)
 
     def predict(self, inputs):
         return self.forwardPropagation(inputs)[-1]
@@ -49,7 +56,8 @@ class Network(object):
             plt.show()
             
     def forwardPropagation(self, inputs):
-        inputs = np.hstack((inputs, [1])) #add bias
+        if self.layers[0].biased:
+            inputs = np.hstack((inputs, [1])) #add bias
         outputs = []
         outputs.append(inputs)
         activatedOutput = inputs
@@ -76,7 +84,8 @@ class Network(object):
     def updateWeights(self, outputs, deltas):
         for i in range(len(deltas)):
             layer = self.layers[i+1]
-            layer.params -= self.alpha * np.outer(deltas[i], outputs[i])
+            layer.updateWeights(outputs[i], deltas[i], self.alpha)
+            
             
             
 
