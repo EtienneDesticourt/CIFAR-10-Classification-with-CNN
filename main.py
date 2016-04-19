@@ -5,12 +5,9 @@ from Network import Network
 import random
 import matplotlib.pyplot as plt
 import matplotlib
-IMAGE_SHAPE  = (32,32,3)
-NUM_KERNELS  = 12
-SIZE_KERNELS = 3
-NUM_LABELS   = 10
-NUM_EPOCH = 1000
-ALPHA = 0.5
+import pickle
+
+
 def relu(array):
     return np.maximum(array, 0)
 
@@ -66,7 +63,7 @@ def runTest1():
     
     return N
 
-def run():
+def runTest2():
     inputArray = np.array([[[[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
                             [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
                             [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]],
@@ -86,7 +83,7 @@ def run():
     #Create network
     N = Network(sigmoid, ALPHA)
     N.addLayer(inputArray[0].shape)
-    N.addConvLayer(inputArray[0].shape, numKernels, kernelSize, flatten=True) #We flatten it if it's gonna follow a FC layer
+    N.addConvLayer(inputArray[0].shape, numKernels, kernelSize, flatten=True) #We flatten it if it's gonna be followed by a FC layer
     N.addLayer(10, biased=True)
     N.addLayer(1)
 ##    return inputArray
@@ -95,5 +92,65 @@ def run():
     N.fit(inputArray, labels, NUM_EPOCH, verbose=True)
 
     return N
+
+def unpickle(file):
+    fo = open(file, 'rb')
+    dic = pickle.load(fo, encoding='latin1')
+    fo.close()
+    return dic
+
+def shapeAsImage(inputs):    
+    inputs = np.dstack((inputs[:,:1024], inputs[:,1024:2048], inputs[:,2048:]))
+    return np.reshape(inputs, (10000, 32, 32, 3))
+
+def oneHotEncode(labels):
+    labels = np.array(labels)
+    maxLabel = max(labels)
+    oneHotEncoded = np.zeros((labels.size, maxLabel+1))
+    oneHotEncoded[np.arange(labels.size), labels] = 1
+    return oneHotEncoded
+
+
+PATH = r"E:\Users\Etienne2\Downloads\cifar-10-python\cifar-10-batches-py\data_batch_1"
+IMAGE_SHAPE  = (32,32,3)
+NUM_KERNELS  = 12
+SIZE_KERNELS = 6
+NUM_LABELS   = 10
+
+NUM_EPOCH = 100
+ALPHA = 0.5
+
+def run():
+    #Unpickle data and put it in usable shape
+    data = unpickle(PATH)
+    inputs = shapeAsImage(data['data'])
+    labels = oneHotEncode(data['labels'])
+    print(labels[0])
+    #Check what it looks like
+    plt.imshow(inputs[0], interpolation='nearest')
+    plt.show()
+
+    #Create classification network
+    N = Network(sigmoid, ALPHA)
+    N.addLayer(IMAGE_SHAPE)
+    N.addConvLayer(IMAGE_SHAPE, NUM_KERNELS, SIZE_KERNELS, flatten=True)
+    N.addLayer(NUM_LABELS)
+
+
+    import cProfile
+
+    fit = N.fit
+
+    #Train network
+    command = 'N.fit(inputs[:10], labels[:10], NUM_EPOCH, verbose=True)'
+    cProfile.runctx(command, globals(), locals(), filename=None)
+    #cProfile.run('fit(inputs[:10], labels[:10], NUM_EPOCH, verbose=True)')
+
+    return N
+    
+
+
+
+    
 
 N = run()
